@@ -9,11 +9,16 @@ const (
 	framesPerBuffer = 1024
 )
 
+// MicrophoneReader implements io.ReadCloser for capturing audio from the microphone.
+// It uses PortAudio to capture 16-bit PCM audio at 16kHz sample rate.
 type MicrophoneReader struct {
 	stream *portaudio.Stream
 	buffer []int16
 }
 
+// NewMicrophoneReader creates a new MicrophoneReader that captures audio from the default input device.
+// It initializes PortAudio, opens an audio stream, and starts recording.
+// The caller must call Close() to properly clean up resources.
 func NewMicrophoneReader() (*MicrophoneReader, error) {
 	// Initialize PortAudio
 	if err := portaudio.Initialize(); err != nil {
@@ -42,6 +47,9 @@ func NewMicrophoneReader() (*MicrophoneReader, error) {
 	}, nil
 }
 
+// Read implements io.Reader. It captures one frame of audio data from the microphone
+// and copies it to the provided buffer. The audio data is converted from int16 samples
+// to little-endian byte format.
 func (m *MicrophoneReader) Read(p []byte) (int, error) {
 	if err := m.stream.Read(); err != nil {
 		return 0, err
@@ -52,6 +60,7 @@ func (m *MicrophoneReader) Read(p []byte) (int, error) {
 	return n, nil
 }
 
+// Close implements io.Closer. It stops the audio stream, closes it, and terminates PortAudio.
 func (m *MicrophoneReader) Close() error {
 	var err error
 	if m.stream != nil {
@@ -66,6 +75,8 @@ func (m *MicrophoneReader) Close() error {
 	return err
 }
 
+// int16SliceToByteSlice converts a slice of int16 audio samples to a byte slice
+// using little-endian encoding. Each int16 sample is converted to 2 bytes.
 func int16SliceToByteSlice(in []int16) []byte {
 	out := make([]byte, len(in)*2)
 	for i, v := range in {

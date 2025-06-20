@@ -20,12 +20,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// Client represents a speech-to-text client that streams audio data to a WebSocket server
+// and receives transcription results. It manages the WebSocket connection, audio input,
+// and optional output file writing.
 type Client struct {
 	conn        *websocket.Conn
-	audioReader io.ReadCloser
+	audioReader io.Reader
 	wg          sync.WaitGroup
 	log         *log.Logger
-	outputFile  *os.File
 	bufWriter   *bufio.Writer
 }
 
@@ -81,7 +83,6 @@ func main() {
 		}
 		defer outputFile.Close()
 
-		client.outputFile = outputFile
 		client.bufWriter = bufio.NewWriter(outputFile)
 		defer client.bufWriter.Flush()
 	}

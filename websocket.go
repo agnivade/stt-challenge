@@ -16,14 +16,21 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// WebSocketRequest represents an audio data message sent from the client to the server.
+// It contains raw audio bytes that will be forwarded to the Google Speech API.
 type WebSocketRequest struct {
 	Buf []byte `json:"buf"`
 }
 
+// WebSocketResponse represents a transcription result sent from the server to the client.
+// It contains the final transcribed text from the Google Speech API.
 type WebSocketResponse struct {
 	Sentence string `json:"sentence"`
 }
 
+// WebConn represents a WebSocket connection that bridges client audio data
+// with Google Speech API streaming recognition. It manages bidirectional
+// communication between the WebSocket client and the speech recognition service.
 type WebConn struct {
 	conn     *websocket.Conn
 	log      *log.Logger
@@ -161,13 +168,7 @@ func (wc *WebConn) writer() {
 					Sentence: sentence,
 				}
 
-				responseData, err := json.Marshal(response)
-				if err != nil {
-					wc.log.Printf("Failed to marshal response: %v\n", err)
-					continue
-				}
-
-				if err := wc.conn.WriteMessage(websocket.TextMessage, responseData); err != nil {
+				if err := wc.conn.WriteJSON(response); err != nil {
 					wc.log.Printf("WebSocket write error: %v\n", err)
 					return
 				}
