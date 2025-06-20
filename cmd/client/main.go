@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -11,6 +13,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	stt "github.com/agnivade/stt_challenge"
 	"github.com/gordonklaus/portaudio"
@@ -20,7 +23,6 @@ import (
 const (
 	sampleRate      = 16000
 	framesPerBuffer = 1024
-	serverURL       = "ws://localhost:8081/ws"
 )
 
 type Client struct {
@@ -29,9 +31,15 @@ type Client struct {
 	audioBuffer []int16
 	wg          sync.WaitGroup
 	log         *log.Logger
+	outputFile  *os.File
+	bufWriter   *bufio.Writer
 }
 
 func main() {
+	var serverURL = flag.String("url", "ws://localhost:8081/ws", "WebSocket server URL")
+	var outputPath = flag.String("output", "", "Output file path for transcriptions (optional)")
+	flag.Parse()
+
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
 
 	// Initialize PortAudio
@@ -59,7 +67,7 @@ func main() {
 	defer audioStream.Stop()
 
 	// Connect to WebSocket server
-	conn, _, err := websocket.DefaultDialer.Dial(serverURL, nil)
+	conn, _, err := websocket.DefaultDialer.Dial(*serverURL, nil)
 	if err != nil {
 		logger.Printf("WebSocket dial failed: %v\n", err)
 		return
@@ -71,6 +79,20 @@ func main() {
 		audioStream: audioStream,
 		audioBuffer: audioBuffer,
 		log:         logger,
+	}
+
+	// Setup output file if specified
+	if *outputPath != "" {
+		outputFile, err := os.Create(*outputPath)
+		if err != nil {
+			logger.Printf("Failed to create output file: %v\n", err)
+			return
+		}
+		defer outputFile.Close()
+
+		client.outputFile = outputFile
+		client.bufWriter = bufio.NewWriter(outputFile)
+		defer client.bufWriter.Flush()
 	}
 
 	fmt.Println("Recording... Press Ctrl+C to stop.")
@@ -118,7 +140,19 @@ func (c *Client) reader() {
 			continue
 		}
 
-		fmt.Printf("Transcription: %s\n", response.Sentence)
+		timestamp := time.Now().Format("15:04:05")
+		line := fmt.Sprintf("[%s] %s\n", timestamp, response.Sentence)
+
+		fmt.Print(line)
+
+		// Write to file if output file is specified
+		if c.bufWriter != nil {
+			if _, err := c.bufWriter.WriteString(line); err != nil {
+				c.log.Printf("Failed to write to output file: %v\n", err)
+			} else {
+				c.bufWriter.Flush()
+			}
+		}
 	}
 }
 

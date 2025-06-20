@@ -83,6 +83,7 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		cancelFn: cancel,
 	}
 
+	// TODO: keep track of webconns and close them properly on server shutdown.
 	webConn.Start()
 }
 
@@ -107,6 +108,7 @@ func (wc *WebConn) reader() {
 	var buf bytes.Buffer
 
 	for {
+		// Reuse the buffer
 		buf.Reset()
 
 		_, r, err := wc.conn.NextReader()
