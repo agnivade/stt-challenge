@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -93,8 +94,12 @@ func (c *Client) Start() {
 
 func (c *Client) reader() {
 	defer c.wg.Done()
+	var buf bytes.Buffer
+
 	for {
-		_, message, err := c.conn.ReadMessage()
+		buf.Reset()
+
+		_, r, err := c.conn.NextReader()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				c.log.Printf("WebSocket read error: %v\n", err)
@@ -102,8 +107,13 @@ func (c *Client) reader() {
 			return
 		}
 
+		if _, err := buf.ReadFrom(r); err != nil {
+			c.log.Printf("Failed to read from WebSocket reader: %v\n", err)
+			continue
+		}
+
 		var response stt.WebSocketResponse
-		if err := json.Unmarshal(message, &response); err != nil {
+		if err := json.Unmarshal(buf.Bytes(), &response); err != nil {
 			c.log.Printf("Failed to unmarshal response: %v\n", err)
 			continue
 		}

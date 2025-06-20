@@ -28,7 +28,7 @@ func New() *Server {
 	}
 
 	mux := http.NewServeMux()
-	
+
 	server := &Server{
 		srv: &http.Server{
 			Addr:         ":8081",
@@ -40,7 +40,7 @@ func New() *Server {
 		log:          logger,
 		speechClient: speechClient,
 	}
-	
+
 	mux.HandleFunc("/ws", server.handleWebSocket)
 
 	return server

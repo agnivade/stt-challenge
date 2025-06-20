@@ -1,6 +1,7 @@
 package stt_challenge
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -93,8 +94,12 @@ func (wc *WebConn) Start() {
 }
 
 func (wc *WebConn) reader() {
+	var buf bytes.Buffer
+
 	for {
-		_, message, err := wc.conn.ReadMessage()
+		buf.Reset()
+
+		_, r, err := wc.conn.NextReader()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				wc.log.Printf("WebSocket read error: %v\n", err)
@@ -102,8 +107,13 @@ func (wc *WebConn) reader() {
 			break
 		}
 
+		if _, err := buf.ReadFrom(r); err != nil {
+			wc.log.Printf("Failed to read from WebSocket reader: %v\n", err)
+			continue
+		}
+
 		var req WebSocketRequest
-		if err := json.Unmarshal(message, &req); err != nil {
+		if err := json.Unmarshal(buf.Bytes(), &req); err != nil {
 			wc.log.Printf("Failed to unmarshal WebSocket message: %v\n", err)
 			continue
 		}
