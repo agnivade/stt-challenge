@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -16,19 +17,12 @@ import (
 	"time"
 
 	stt "github.com/agnivade/stt_challenge"
-	"github.com/gordonklaus/portaudio"
 	"github.com/gorilla/websocket"
-)
-
-const (
-	sampleRate      = 16000
-	framesPerBuffer = 1024
 )
 
 type Client struct {
 	conn        *websocket.Conn
-	audioStream *portaudio.Stream
-	audioBuffer []int16
+	audioReader io.ReadCloser
 	wg          sync.WaitGroup
 	log         *log.Logger
 	outputFile  *os.File
@@ -38,33 +32,31 @@ type Client struct {
 func main() {
 	var serverURL = flag.String("url", "ws://localhost:8081/ws", "WebSocket server URL")
 	var outputPath = flag.String("output", "", "Output file path for transcriptions (optional)")
+	var inputFile = flag.String("input", "", "Input audio file path (if not set, uses microphone)")
 	flag.Parse()
 
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
 
-	// Initialize PortAudio
-	if err := portaudio.Initialize(); err != nil {
-		logger.Printf("portaudio.Initialize: %v\n", err)
-		return
+	// Initialize audio reader (either file or microphone)
+	var audioReader io.ReadCloser
+	if *inputFile != "" {
+		file, err := os.Open(*inputFile)
+		if err != nil {
+			logger.Printf("Failed to open input file: %v\n", err)
+			return
+		}
+		audioReader = file
+		logger.Printf("Using input file: %s\n", *inputFile)
+	} else {
+		micReader, err := NewMicrophoneReader()
+		if err != nil {
+			logger.Printf("Failed to initialize microphone: %v\n", err)
+			return
+		}
+		audioReader = micReader
+		logger.Println("Using microphone input")
 	}
-	defer portaudio.Terminate()
-
-	// Create audio buffer
-	audioBuffer := make([]int16, framesPerBuffer)
-
-	// Open default audio stream
-	audioStream, err := portaudio.OpenDefaultStream(1, 0, float64(sampleRate), len(audioBuffer), audioBuffer)
-	if err != nil {
-		logger.Printf("OpenDefaultStream: %v\n", err)
-		return
-	}
-	defer audioStream.Close()
-
-	if err := audioStream.Start(); err != nil {
-		logger.Printf("audioStream.Start: %v\n", err)
-		return
-	}
-	defer audioStream.Stop()
+	defer audioReader.Close()
 
 	// Connect to WebSocket server
 	conn, _, err := websocket.DefaultDialer.Dial(*serverURL, nil)
@@ -76,8 +68,7 @@ func main() {
 
 	client := &Client{
 		conn:        conn,
-		audioStream: audioStream,
-		audioBuffer: audioBuffer,
+		audioReader: audioReader,
 		log:         logger,
 	}
 
@@ -158,16 +149,22 @@ func (c *Client) reader() {
 
 func (c *Client) writer() {
 	defer c.wg.Done()
+	buf := make([]byte, framesPerBuffer*2) // int16 * 2 bytes each
+
 	for {
-		if err := c.audioStream.Read(); err != nil {
+		// This should never block as long as there is data
+		// coming from the reader. So we don't need to make it cancellable.
+		n, err := c.audioReader.Read(buf)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return
+			}
 			c.log.Printf("Audio read error: %v\n", err)
 			break
 		}
 
-		audioBytes := int16SliceToByteSlice(c.audioBuffer)
-
 		request := stt.WebSocketRequest{
-			Buf: audioBytes,
+			Buf: buf[:n],
 		}
 
 		if err := c.conn.WriteJSON(request); err != nil {
@@ -185,14 +182,4 @@ func (c *Client) Close() {
 		c.conn.Close()
 	}
 	c.wg.Wait()
-}
-
-func int16SliceToByteSlice(in []int16) []byte {
-	out := make([]byte, len(in)*2)
-	for i, v := range in {
-		// little-endian
-		out[2*i] = byte(v)
-		out[2*i+1] = byte(v >> 8)
-	}
-	return out
 }
