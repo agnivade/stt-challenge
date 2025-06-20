@@ -7,6 +7,7 @@ require (
 	github.com/gordonklaus/portaudio v0.0.0-20250206071425-98a94950218b
 	github.com/gorilla/websocket v1.5.3
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822
+	google.golang.org/grpc v1.73.0
 )
 
 require (
@@ -37,6 +38,5 @@ require (
 	google.golang.org/api v0.237.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
-	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )

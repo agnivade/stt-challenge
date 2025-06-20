@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type WebSocketRequest struct {
@@ -22,10 +25,11 @@ type WebSocketResponse struct {
 }
 
 type WebConn struct {
-	conn   *websocket.Conn
-	log    *log.Logger
-	wg     sync.WaitGroup
-	stream speechpb.Speech_StreamingRecognizeClient
+	conn     *websocket.Conn
+	log      *log.Logger
+	wg       sync.WaitGroup
+	stream   speechpb.Speech_StreamingRecognizeClient
+	cancelFn context.CancelFunc
 }
 
 func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +47,9 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s.log.Println("Opening stream...")
 	stream, err := s.speechClient.StreamingRecognize(ctx)
 	if err != nil {
 		s.log.Printf("StreamingRecognize failed: %v\n", err)
@@ -71,9 +77,10 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	webConn := &WebConn{
-		conn:   conn,
-		log:    s.log,
-		stream: stream,
+		conn:     conn,
+		log:      s.log,
+		stream:   stream,
+		cancelFn: cancel,
 	}
 
 	webConn.Start()
@@ -90,6 +97,9 @@ func (wc *WebConn) Start() {
 	}()
 
 	wc.reader()
+	wc.log.Println("Closing stream...")
+	// Cancel reader stream, to allow for the writer to exit.
+	wc.cancelFn()
 	wc.wg.Wait()
 }
 
@@ -133,10 +143,11 @@ func (wc *WebConn) reader() {
 func (wc *WebConn) writer() {
 	for {
 		resp, err := wc.stream.Recv()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) || status.Code(err) == codes.Canceled {
 			return
 		}
 		if err != nil {
+			// TODO: Handle Audio timeout properly and support resumable streams.
 			wc.log.Printf("stream.Recv error: %v\n", err)
 			return
 		}
