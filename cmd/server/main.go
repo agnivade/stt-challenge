@@ -18,20 +18,55 @@ import (
 
 func main() {
 	// Parse command line flags
-	providerName := flag.String("provider", "google", "Transcription provider to use (google or deepgram)")
+	enableGoogle := flag.Bool("google", true, "Enable Google Speech provider")
+	enableDeepgram := flag.Bool("deepgram", true, "Enable Deepgram provider")
 	flag.Parse()
 
-	// Create the appropriate provider
-	provider, cleanup, err := createProvider(*providerName)
-	if err != nil {
-		log.Fatalf("Failed to create provider: %v", err)
-	}
-	if cleanup != nil {
-		defer cleanup()
+	// Create providers based on flags
+	var providerList []providers.Provider
+	var cleanupFuncs []func() error
+
+	if *enableGoogle {
+		provider, cleanup, err := createGoogleProvider()
+		if err != nil {
+			log.Printf("Failed to create Google provider: %v", err)
+		} else {
+			providerList = append(providerList, provider)
+			if cleanup != nil {
+				cleanupFuncs = append(cleanupFuncs, cleanup)
+			}
+		}
 	}
 
-	// Create server with the provider
-	s := stt.New(provider)
+	if *enableDeepgram {
+		provider, cleanup, err := createDeepgramProvider()
+		if err != nil {
+			log.Printf("Failed to create Deepgram provider: %v", err)
+		} else {
+			providerList = append(providerList, provider)
+			if cleanup != nil {
+				cleanupFuncs = append(cleanupFuncs, cleanup)
+			}
+		}
+	}
+
+	if len(providerList) == 0 {
+		log.Fatalf("No providers available. Enable at least one provider.")
+	}
+
+	// Cleanup all providers on exit
+	defer func() {
+		for _, cleanup := range cleanupFuncs {
+			if err := cleanup(); err != nil {
+				log.Printf("Error during provider cleanup: %v", err)
+			}
+		}
+	}()
+
+	log.Printf("Starting server with %d provider(s)", len(providerList))
+
+	// Create server with all providers
+	s := stt.New(providerList...)
 
 	go func() {
 		if err := s.Start(); err != nil {
@@ -48,16 +83,6 @@ func main() {
 	}
 }
 
-func createProvider(providerName string) (providers.Provider, func() error, error) {
-	switch providerName {
-	case "google":
-		return createGoogleProvider()
-	case "deepgram":
-		return createDeepgramProvider()
-	default:
-		return nil, nil, fmt.Errorf("unknown provider: %s. Supported providers: google, deepgram", providerName)
-	}
-}
 
 func createGoogleProvider() (providers.Provider, func() error, error) {
 	if os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" {

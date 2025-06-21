@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"time"
 
 	api "github.com/deepgram/deepgram-go-sdk/v3/pkg/api/listen/v1/websocket/interfaces"
 	interfaces "github.com/deepgram/deepgram-go-sdk/v3/pkg/client/interfaces"
@@ -15,6 +16,8 @@ import (
 
 	"github.com/agnivade/stt_challenge/providers"
 )
+
+const providerName = "deepgram"
 
 // Provider implements the providers.Provider interface for Deepgram's speech-to-text API.
 type Provider struct {
@@ -28,6 +31,11 @@ func NewProvider(apiKey string) *Provider {
 	return &Provider{
 		apiKey: apiKey,
 	}
+}
+
+// Name returns the name of the provider.
+func (p *Provider) Name() string {
+	return providerName
 }
 
 // NewSession creates a new Deepgram transcription session.
@@ -166,9 +174,11 @@ func (c *CallbackHandler) Message(mr *api.MessageResponse) error {
 	}
 
 	result := providers.TranscriptionResult{
-		Text:       sentence,
-		IsFinal:    mr.IsFinal,
-		Confidence: float32(alternative.Confidence),
+		Text:         sentence,
+		IsFinal:      mr.IsFinal,
+		Confidence:   float32(alternative.Confidence),
+		ProviderName: providerName,
+		ReceivedAt:   time.Now(),
 	}
 
 	// Only send final results to match our interface expectation

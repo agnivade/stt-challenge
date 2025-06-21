@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	speech "cloud.google.com/go/speech/apiv1"
 	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/agnivade/stt_challenge/providers"
 )
+
+const providerName = "google"
 
 // Provider implements the providers.Provider interface for Google Speech-to-Text API.
 type Provider struct {
@@ -23,6 +26,11 @@ func NewProvider(client *speech.Client) *Provider {
 	return &Provider{
 		client: client,
 	}
+}
+
+// Name returns the name of the provider.
+func (p *Provider) Name() string {
+	return providerName
 }
 
 // NewSession creates a new Google Speech transcription session.
@@ -89,9 +97,11 @@ func (s *Session) ReceiveTranscription() (providers.TranscriptionResult, error) 
 			if result.IsFinal && len(result.Alternatives) > 0 {
 				alt := result.Alternatives[0]
 				return providers.TranscriptionResult{
-					Text:       alt.Transcript,
-					IsFinal:    true,
-					Confidence: alt.Confidence,
+					Text:         alt.Transcript,
+					IsFinal:      true,
+					Confidence:   alt.Confidence,
+					ProviderName: providerName,
+					ReceivedAt:   time.Now(),
 				}, nil
 			}
 		}

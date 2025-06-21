@@ -2,6 +2,7 @@ package providers
 
 import (
 	"context"
+	"time"
 )
 
 // Provider creates transcription sessions for streaming speech-to-text conversion.
@@ -11,6 +12,9 @@ type Provider interface {
 	// NewSession creates a new transcription session with the given configuration.
 	// The context can be used to cancel the session creation process.
 	NewSession(ctx context.Context, config SessionConfig) (Session, error)
+
+	// Name returns the name of the provider for identification purposes.
+	Name() string
 }
 
 // Session handles streaming transcription for a single connection.
@@ -59,4 +63,10 @@ type TranscriptionResult struct {
 
 	// Confidence is the confidence score (0.0 to 1.0) if available
 	Confidence float32
+
+	// ProviderName identifies which provider generated this result
+	ProviderName string
+
+	// ReceivedAt indicates when this result was received by the provider
+	ReceivedAt time.Time
 }

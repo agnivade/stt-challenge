@@ -2,7 +2,6 @@ package stt_challenge
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -31,11 +30,10 @@ type WebSocketResponse struct {
 // with speech transcription providers. It manages bidirectional
 // communication between the WebSocket client and the transcription service.
 type WebConn struct {
-	conn     *websocket.Conn
-	log      *log.Logger
-	wg       sync.WaitGroup
-	session  providers.Session
-	cancelFn context.CancelFunc
+	conn    *websocket.Conn
+	log     *log.Logger
+	wg      sync.WaitGroup
+	session providers.Session
 }
 
 func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
@@ -53,28 +51,24 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	s.log.Println("Creating transcription session...")
+	s.log.Println("Creating provider selector...")
 	config := providers.SessionConfig{
 		SampleRate:     16000,
 		LanguageCode:   "en-US",
 		InterimResults: true,
 	}
 
-	session, err := s.provider.NewSession(ctx, config)
+	selector, err := NewProviderSelector(s.providers, config, s.log)
 	if err != nil {
-		s.log.Printf("Failed to create transcription session: %v\n", err)
+		s.log.Printf("Failed to create provider selector: %v\n", err)
 		conn.Close()
 		return
 	}
 
 	webConn := &WebConn{
-		conn:     conn,
-		log:      s.log,
-		session:  session,
-		cancelFn: cancel,
+		conn:    conn,
+		log:     s.log,
+		session: selector,
 	}
 
 	// TODO: keep track of webconns and close them properly on server shutdown.
@@ -83,7 +77,6 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 func (wc *WebConn) Start() {
 	defer wc.conn.Close()
-	defer wc.session.Close()
 
 	wc.wg.Add(1)
 	go func() {
@@ -93,8 +86,9 @@ func (wc *WebConn) Start() {
 
 	wc.reader()
 	wc.log.Println("Closing transcription session...")
-	// Cancel reader stream, to allow for the writer to exit.
-	wc.cancelFn()
+	// Close session, which will cancel context and allow writer to exit
+	// Important to call this after wc.reader() exits.
+	wc.session.Close()
 	wc.wg.Wait()
 }
 
@@ -146,16 +140,16 @@ func (wc *WebConn) writer() {
 			return
 		}
 
-		if result.IsFinal {
-			response := WebSocketResponse{
-				Sentence:   result.Text,
-				Confidence: result.Confidence,
-			}
-
-			if err := wc.conn.WriteJSON(response); err != nil {
-				wc.log.Printf("WebSocket write error: %v\n", err)
-				return
-			}
+		// if result.IsFinal {
+		response := WebSocketResponse{
+			Sentence:   result.Text,
+			Confidence: result.Confidence,
 		}
+
+		if err := wc.conn.WriteJSON(response); err != nil {
+			wc.log.Printf("WebSocket write error: %v\n", err)
+			return
+		}
+		// }
 	}
 }

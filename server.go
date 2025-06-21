@@ -13,12 +13,12 @@ import (
 )
 
 type Server struct {
-	srv      *http.Server
-	log      *log.Logger
-	provider providers.Provider
+	srv       *http.Server
+	log       *log.Logger
+	providers []providers.Provider
 }
 
-func New(provider providers.Provider) *Server {
+func New(providers ...providers.Provider) *Server {
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
 	mux := http.NewServeMux()
 
@@ -30,8 +30,8 @@ func New(provider providers.Provider) *Server {
 			IdleTimeout:  60 * time.Second,
 			Handler:      mux,
 		},
-		log:      logger,
-		provider: provider,
+		log:       logger,
+		providers: providers,
 	}
 
 	mux.HandleFunc("/ws", server.handleWebSocket)
