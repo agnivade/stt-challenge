@@ -1,0 +1,16 @@
+all: false
+filename: mocks.go
+force-file-write: true
+formatter: goimports
+log-level: info
+structname: '{{.Mock}}{{.InterfaceName}}'
+recursive: false
+require-template-schema-exists: true
+template: testify
+template-schema: '{{.Template}}.schema.json'
+packages:
+  github.com/agnivade/stt_challenge/providers:
+    config:
+      pkgname: 'mocks'
+      all: true
+      dir: '{{.InterfaceDir}}/mocks'

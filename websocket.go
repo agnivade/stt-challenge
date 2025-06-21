@@ -4,16 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"net/http"
 	"sync"
 
+	"github.com/agnivade/stt_challenge/providers"
 	"github.com/gorilla/websocket"
-	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // WebSocketRequest represents an audio data message sent from the client to the server.
@@ -29,13 +26,13 @@ type WebSocketResponse struct {
 }
 
 // WebConn represents a WebSocket connection that bridges client audio data
-// with Google Speech API streaming recognition. It manages bidirectional
-// communication between the WebSocket client and the speech recognition service.
+// with speech transcription providers. It manages bidirectional
+// communication between the WebSocket client and the transcription service.
 type WebConn struct {
 	conn     *websocket.Conn
 	log      *log.Logger
 	wg       sync.WaitGroup
-	stream   speechpb.Speech_StreamingRecognizeClient
+	session  providers.Session
 	cancelFn context.CancelFunc
 }
 
@@ -56,29 +53,17 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	s.log.Println("Opening stream...")
-	stream, err := s.speechClient.StreamingRecognize(ctx)
-	if err != nil {
-		s.log.Printf("StreamingRecognize failed: %v\n", err)
-		conn.Close()
-		return
+
+	s.log.Println("Creating transcription session...")
+	config := providers.SessionConfig{
+		SampleRate:     16000,
+		LanguageCode:   "en-US",
+		InterimResults: false,
 	}
 
-	// Send initial configuration
-	req := &speechpb.StreamingRecognizeRequest{
-		StreamingRequest: &speechpb.StreamingRecognizeRequest_StreamingConfig{
-			StreamingConfig: &speechpb.StreamingRecognitionConfig{
-				Config: &speechpb.RecognitionConfig{
-					Encoding:        speechpb.RecognitionConfig_LINEAR16,
-					SampleRateHertz: 16000,
-					LanguageCode:    "en-US",
-				},
-				InterimResults: false,
-			},
-		},
-	}
-	if err := stream.Send(req); err != nil {
-		s.log.Printf("Error sending config: %v\n", err)
+	session, err := s.provider.NewSession(ctx, config)
+	if err != nil {
+		s.log.Printf("Failed to create transcription session: %v\n", err)
 		conn.Close()
 		return
 	}
@@ -86,7 +71,7 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	webConn := &WebConn{
 		conn:     conn,
 		log:      s.log,
-		stream:   stream,
+		session:  session,
 		cancelFn: cancel,
 	}
 
@@ -96,7 +81,7 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 func (wc *WebConn) Start() {
 	defer wc.conn.Close()
-	defer wc.stream.CloseSend()
+	defer wc.session.Close()
 
 	wc.wg.Add(1)
 	go func() {
@@ -105,7 +90,7 @@ func (wc *WebConn) Start() {
 	}()
 
 	wc.reader()
-	wc.log.Println("Closing stream...")
+	wc.log.Println("Closing transcription session...")
 	// Cancel reader stream, to allow for the writer to exit.
 	wc.cancelFn()
 	wc.wg.Wait()
@@ -137,41 +122,33 @@ func (wc *WebConn) reader() {
 			continue
 		}
 
-		// Send audio bytes to speech stream
-		speechReq := &speechpb.StreamingRecognizeRequest{
-			StreamingRequest: &speechpb.StreamingRecognizeRequest_AudioContent{
-				AudioContent: req.Buf,
-			},
-		}
-		if err := wc.stream.Send(speechReq); err != nil {
-			wc.log.Printf("stream.Send error: %v\n", err)
+		// Send audio bytes to transcription session
+		if err := wc.session.SendAudio(req.Buf); err != nil {
+			wc.log.Printf("session.SendAudio error: %v\n", err)
 		}
 	}
 }
 
 func (wc *WebConn) writer() {
 	for {
-		resp, err := wc.stream.Recv()
-		if errors.Is(err, io.EOF) || status.Code(err) == codes.Canceled {
+		result, err := wc.session.ReceiveTranscription()
+		if err == io.EOF {
 			return
 		}
 		if err != nil {
 			// TODO: Handle Audio timeout properly and support resumable streams.
-			wc.log.Printf("stream.Recv error: %v\n", err)
+			wc.log.Printf("session.ReceiveTranscription error: %v\n", err)
 			return
 		}
 
-		for _, result := range resp.Results {
-			if result.IsFinal {
-				sentence := result.Alternatives[0].Transcript
-				response := WebSocketResponse{
-					Sentence: sentence,
-				}
+		if result.IsFinal {
+			response := WebSocketResponse{
+				Sentence: result.Text,
+			}
 
-				if err := wc.conn.WriteJSON(response); err != nil {
-					wc.log.Printf("WebSocket write error: %v\n", err)
-					return
-				}
+			if err := wc.conn.WriteJSON(response); err != nil {
+				wc.log.Printf("WebSocket write error: %v\n", err)
+				return
 			}
 		}
 	}

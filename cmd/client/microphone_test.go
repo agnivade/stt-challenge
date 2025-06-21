@@ -15,7 +15,7 @@ func TestInt16SliceToByteSlice(t *testing.T) {
 		},
 		{
 			name:     "Single positive value",
-			input:    []int16{258}, // 0x0102
+			input:    []int16{258},       // 0x0102
 			expected: []byte{0x02, 0x01}, // little-endian: low byte first
 		},
 		{
@@ -48,18 +48,18 @@ func TestInt16SliceToByteSlice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := int16SliceToByteSlice(tt.input)
-			
+
 			if len(result) != len(tt.expected) {
 				t.Errorf("Expected length %d, got %d", len(tt.expected), len(result))
 				return
 			}
-			
+
 			for i, expected := range tt.expected {
 				if result[i] != expected {
 					t.Errorf("At index %d: expected 0x%02X, got 0x%02X", i, expected, result[i])
 				}
 			}
-			
+
 			// Verify the slice length is exactly double the input length
 			expectedLen := len(tt.input) * 2
 			if len(result) != expectedLen {

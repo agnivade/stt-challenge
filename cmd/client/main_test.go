@@ -44,7 +44,7 @@ func mockWebSocketServer(t *testing.T, handler func(*websocket.Conn)) *httptest.
 // createTestClient creates a Client instance for testing
 func createTestClient(t *testing.T, conn *websocket.Conn, audioReader io.Reader, outputFile *os.File) *Client {
 	logger := log.New(io.Discard, "", 0) // Suppress test output
-	
+
 	client := &Client{
 		conn:        conn,
 		audioReader: audioReader,
@@ -81,7 +81,7 @@ func TestClient(t *testing.T) {
 
 		// Create a simple audio reader that returns EOF immediately
 		audioReader := strings.NewReader("")
-		
+
 		client := createTestClient(t, conn, audioReader, nil)
 
 		// Start the client
@@ -154,7 +154,7 @@ func TestClient(t *testing.T) {
 		// Verify we received audio data
 		mu.Lock()
 		defer mu.Unlock()
-		
+
 		if len(receivedRequests) == 0 {
 			t.Fatal("No audio data received")
 		}
@@ -187,7 +187,7 @@ func TestClient(t *testing.T) {
 				}
 				time.Sleep(100 * time.Millisecond) // Small delay between responses
 			}
-			
+
 			// Signal completion and keep connection open briefly
 			time.Sleep(200 * time.Millisecond)
 			close(done)
@@ -199,7 +199,7 @@ func TestClient(t *testing.T) {
 
 		// Use empty reader since we're only testing the reader goroutine
 		audioReader := strings.NewReader("")
-		
+
 		client := createTestClient(t, conn, audioReader, nil)
 
 		// Capture stdout to verify output
@@ -222,7 +222,7 @@ func TestClient(t *testing.T) {
 		// Restore stdout and read captured output
 		w.Close()
 		os.Stdout = oldStdout
-		
+
 		var buf bytes.Buffer
 		io.Copy(&buf, r)
 		output := buf.String()
@@ -307,7 +307,7 @@ func TestClient(t *testing.T) {
 		}
 
 		fileContent := string(content)
-		
+
 		// Verify all responses were written to file
 		for _, resp := range responses {
 			if !strings.Contains(fileContent, resp.Sentence) {
@@ -347,7 +347,7 @@ func TestClient(t *testing.T) {
 				time.Sleep(50 * time.Millisecond)
 			}
 			responseSent <- true
-			
+
 			time.Sleep(200 * time.Millisecond)
 		})
 		defer server.Close()

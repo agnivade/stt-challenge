@@ -9,24 +9,17 @@ import (
 	"sync"
 	"time"
 
-	speech "cloud.google.com/go/speech/apiv1"
+	"github.com/agnivade/stt_challenge/providers"
 )
 
 type Server struct {
-	srv          *http.Server
-	log          *log.Logger
-	speechClient *speech.Client
+	srv      *http.Server
+	log      *log.Logger
+	provider providers.Provider
 }
 
-func New() *Server {
+func New(provider providers.Provider) *Server {
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
-
-	ctx := context.Background()
-	speechClient, err := speech.NewClient(ctx)
-	if err != nil {
-		logger.Fatalf("Failed to create speech client: %v", err)
-	}
-
 	mux := http.NewServeMux()
 
 	server := &Server{
@@ -37,8 +30,8 @@ func New() *Server {
 			IdleTimeout:  60 * time.Second,
 			Handler:      mux,
 		},
-		log:          logger,
-		speechClient: speechClient,
+		log:      logger,
+		provider: provider,
 	}
 
 	mux.HandleFunc("/ws", server.handleWebSocket)
@@ -72,11 +65,6 @@ func (s *Server) Stop() error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
-	// Close the speech client
-	if s.speechClient != nil {
-		s.speechClient.Close()
-	}
 
 	return s.srv.Shutdown(ctx)
 }
