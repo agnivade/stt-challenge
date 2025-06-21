@@ -133,7 +133,7 @@ func (c *Client) reader() {
 		}
 
 		timestamp := time.Now().Format("15:04:05")
-		line := fmt.Sprintf("[%s] %s\n", timestamp, response.Sentence)
+		line := fmt.Sprintf("[%s] %s (confidence: %.2f)\n", timestamp, response.Sentence, response.Confidence)
 
 		fmt.Print(line)
 

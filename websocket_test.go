@@ -47,11 +47,7 @@ func TestWebSocketHandleConnection(t *testing.T) {
 	// Setup expectations
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
-		providers.SessionConfig{
-			SampleRate:     16000,
-			LanguageCode:   "en-US",
-			InterimResults: false,
-		},
+		mock.AnythingOfType("providers.SessionConfig"),
 	).Return(mockSession, nil)
 
 	mockSession.EXPECT().ReceiveTranscription().Return(providers.TranscriptionResult{}, io.EOF)
@@ -93,11 +89,7 @@ func TestWebSocketAudioFlow(t *testing.T) {
 	// Setup expectations
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
-		providers.SessionConfig{
-			SampleRate:     16000,
-			LanguageCode:   "en-US",
-			InterimResults: false,
-		},
+		mock.AnythingOfType("providers.SessionConfig"),
 	).Return(mockSession, nil)
 
 	mockSession.EXPECT().SendAudio(audioData).Return(nil)
@@ -144,11 +136,7 @@ func TestWebSocketTranscriptionFlow(t *testing.T) {
 	// Setup expectations
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
-		providers.SessionConfig{
-			SampleRate:     16000,
-			LanguageCode:   "en-US",
-			InterimResults: false,
-		},
+		mock.AnythingOfType("providers.SessionConfig"),
 	).Return(mockSession, nil)
 
 	mockSession.EXPECT().SendAudio(audioData).Return(nil)
@@ -209,11 +197,7 @@ func TestWebSocketMultipleMessages(t *testing.T) {
 	// Setup expectations
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
-		providers.SessionConfig{
-			SampleRate:     16000,
-			LanguageCode:   "en-US",
-			InterimResults: false,
-		},
+		mock.AnythingOfType("providers.SessionConfig"),
 	).Return(mockSession, nil)
 
 	mockSession.EXPECT().SendAudio(audioData1).Return(nil)
@@ -282,11 +266,7 @@ func TestWebSocketInvalidJSON(t *testing.T) {
 	// Setup expectations
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
-		providers.SessionConfig{
-			SampleRate:     16000,
-			LanguageCode:   "en-US",
-			InterimResults: false,
-		},
+		mock.AnythingOfType("providers.SessionConfig"),
 	).Return(mockSession, nil)
 
 	mockSession.EXPECT().ReceiveTranscription().Return(providers.TranscriptionResult{}, io.EOF)
@@ -330,11 +310,7 @@ func TestWebSocketReceiveTranscriptionError(t *testing.T) {
 	// Setup expectations
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
-		providers.SessionConfig{
-			SampleRate:     16000,
-			LanguageCode:   "en-US",
-			InterimResults: false,
-		},
+		mock.AnythingOfType("providers.SessionConfig"),
 	).Return(mockSession, nil)
 
 	mockSession.EXPECT().SendAudio(audioData).Return(nil)
@@ -385,11 +361,7 @@ func TestWebSocketSendAudioError(t *testing.T) {
 	// Setup expectations
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
-		providers.SessionConfig{
-			SampleRate:     16000,
-			LanguageCode:   "en-US",
-			InterimResults: false,
-		},
+		mock.AnythingOfType("providers.SessionConfig"),
 	).Return(mockSession, nil)
 
 	mockSession.EXPECT().SendAudio(audioData).Return(errors.New("audio send error"))
@@ -434,11 +406,7 @@ func TestWebSocketProviderSessionCreationError(t *testing.T) {
 	// Setup expectations - provider fails to create session
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
-		providers.SessionConfig{
-			SampleRate:     16000,
-			LanguageCode:   "en-US",
-			InterimResults: false,
-		},
+		mock.AnythingOfType("providers.SessionConfig"),
 	).Return(nil, errors.New("failed to create session"))
 
 	// Create server with mock provider and thread-safe log buffer

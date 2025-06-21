@@ -21,9 +21,10 @@ type WebSocketRequest struct {
 }
 
 // WebSocketResponse represents a transcription result sent from the server to the client.
-// It contains the final transcribed text from the Google Speech API.
+// It contains the final transcribed text and confidence score from the transcription provider.
 type WebSocketResponse struct {
-	Sentence string `json:"sentence"`
+	Sentence   string  `json:"sentence"`
+	Confidence float32 `json:"confidence"`
 }
 
 // WebConn represents a WebSocket connection that bridges client audio data
@@ -147,7 +148,8 @@ func (wc *WebConn) writer() {
 
 		if result.IsFinal {
 			response := WebSocketResponse{
-				Sentence: result.Text,
+				Sentence:   result.Text,
+				Confidence: result.Confidence,
 			}
 
 			if err := wc.conn.WriteJSON(response); err != nil {
