@@ -22,7 +22,7 @@ type Session interface {
 
 	// ReceiveTranscription blocks until a transcription result is available.
 	// It returns the transcription result or an error if transcription fails.
-	// Returns io.EOF when the session is closed and no more results are available.
+	// Returns io.EOF when the session is closed, or context is canceled.
 	ReceiveTranscription() (TranscriptionResult, error)
 
 	// Close gracefully closes the transcription session and releases resources.

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -58,7 +59,7 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	config := providers.SessionConfig{
 		SampleRate:     16000,
 		LanguageCode:   "en-US",
-		InterimResults: false,
+		InterimResults: true,
 	}
 
 	session, err := s.provider.NewSession(ctx, config)
@@ -124,6 +125,9 @@ func (wc *WebConn) reader() {
 
 		// Send audio bytes to transcription session
 		if err := wc.session.SendAudio(req.Buf); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			wc.log.Printf("session.SendAudio error: %v\n", err)
 		}
 	}
@@ -132,7 +136,7 @@ func (wc *WebConn) reader() {
 func (wc *WebConn) writer() {
 	for {
 		result, err := wc.session.ReceiveTranscription()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return
 		}
 		if err != nil {
