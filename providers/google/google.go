@@ -16,6 +16,14 @@ import (
 
 const providerName = "google"
 
+// streamingRecognizeClient is a local interface that wraps the methods we need
+// from speechpb.Speech_StreamingRecognizeClient to enable easier testing
+type streamingRecognizeClient interface {
+	Send(*speechpb.StreamingRecognizeRequest) error
+	Recv() (*speechpb.StreamingRecognizeResponse, error)
+	CloseSend() error
+}
+
 // Provider implements the providers.Provider interface for Google Speech-to-Text API.
 type Provider struct {
 	client *speech.Client
@@ -67,7 +75,7 @@ func (p *Provider) NewSession(ctx context.Context, config providers.SessionConfi
 
 // Session implements the providers.Session interface for Google Speech-to-Text API.
 type Session struct {
-	stream speechpb.Speech_StreamingRecognizeClient
+	stream streamingRecognizeClient
 	ctx    context.Context
 }
 

@@ -14,3 +14,15 @@ packages:
       pkgname: 'mocks'
       all: true
       dir: '{{.InterfaceDir}}/mocks'
+  github.com/agnivade/stt_challenge/providers/google:
+    config:
+      pkgname: 'google'
+      all: true
+      filename: mocks_test.go
+      dir: '{{.InterfaceDir}}'
+  github.com/agnivade/stt_challenge/providers/deepgram:
+    config:
+      pkgname: 'deepgram'
+      all: true
+      filename: mocks_test.go
+      dir: '{{.InterfaceDir}}'

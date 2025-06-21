@@ -297,6 +297,8 @@ func (ps *ProviderSelector) updateActiveProvider() {
 // sendMissedMessages sends any messages from the new active provider that have
 // higher sequence numbers than the old provider, assuming they represent missed transcriptions.
 // This does assume that the Utterance gap of each provider would be the same, which may not be the case, but it's good enough for now.
+// A side issue is that it does not play well with replayed audio since
+// the samples get sent too quickly.
 func (ps *ProviderSelector) sendMissedMessages(oldProvider, newProvider string) {
 	oldResults := ps.providerResults[oldProvider]
 	newResults := ps.providerResults[newProvider]

@@ -12,12 +12,21 @@ import (
 	api "github.com/deepgram/deepgram-go-sdk/v3/pkg/api/listen/v1/websocket/interfaces"
 	interfaces "github.com/deepgram/deepgram-go-sdk/v3/pkg/client/interfaces"
 	client "github.com/deepgram/deepgram-go-sdk/v3/pkg/client/listen"
-	listenv1ws "github.com/deepgram/deepgram-go-sdk/v3/pkg/client/listen/v1/websocket"
 
 	"github.com/agnivade/stt_challenge/providers"
 )
 
 const providerName = "deepgram"
+
+// dgWriter is a local interface that wraps the methods we need
+// from listenv1ws.WSCallback to enable easier testing
+type dgWriter interface {
+	io.Writer
+	Stop()
+}
+
+// Statically ensure that CallbackHandler implements api.LiveMessageCallback
+var _ api.LiveMessageCallback = (*CallbackHandler)(nil)
 
 // Provider implements the providers.Provider interface for Deepgram's speech-to-text API.
 type Provider struct {
@@ -92,7 +101,7 @@ func (p *Provider) NewSession(ctx context.Context, config providers.SessionConfi
 // Session implements the providers.Session interface for Deepgram's speech-to-text API.
 type Session struct {
 	ctx           context.Context
-	client        *listenv1ws.WSCallback
+	client        dgWriter
 	resultChannel chan providers.TranscriptionResult
 	errorChannel  chan error
 	mu            sync.RWMutex
