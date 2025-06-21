@@ -38,6 +38,50 @@ func (_m *MockProvider) EXPECT() *MockProvider_Expecter {
 	return &MockProvider_Expecter{mock: &_m.Mock}
 }
 
+// Name provides a mock function for the type MockProvider
+func (_mock *MockProvider) Name() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Name")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// MockProvider_Name_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Name'
+type MockProvider_Name_Call struct {
+	*mock.Call
+}
+
+// Name is a helper method to define mock.On call
+func (_e *MockProvider_Expecter) Name() *MockProvider_Name_Call {
+	return &MockProvider_Name_Call{Call: _e.mock.On("Name")}
+}
+
+func (_c *MockProvider_Name_Call) Run(run func()) *MockProvider_Name_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockProvider_Name_Call) Return(s string) *MockProvider_Name_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *MockProvider_Name_Call) RunAndReturn(run func() string) *MockProvider_Name_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewSession provides a mock function for the type MockProvider
 func (_mock *MockProvider) NewSession(ctx context.Context, config providers.SessionConfig) (providers.Session, error) {
 	ret := _mock.Called(ctx, config)

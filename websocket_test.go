@@ -44,7 +44,8 @@ func TestWebSocketHandleConnection(t *testing.T) {
 	mockProvider := mocks.NewMockProvider(t)
 	mockSession := mocks.NewMockSession(t)
 
-	// Setup expectations
+	// Setup expectations for provider selector
+	mockProvider.EXPECT().Name().Return("mock-provider")
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
 		mock.AnythingOfType("providers.SessionConfig"),
@@ -87,6 +88,7 @@ func TestWebSocketAudioFlow(t *testing.T) {
 	audioData := []byte("test audio data")
 
 	// Setup expectations
+	mockProvider.EXPECT().Name().Return("mock-provider")
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
 		mock.AnythingOfType("providers.SessionConfig"),
@@ -134,6 +136,7 @@ func TestWebSocketTranscriptionFlow(t *testing.T) {
 	expectedTranscription := "Hello world"
 
 	// Setup expectations
+	mockProvider.EXPECT().Name().Return("mock-provider")
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
 		mock.AnythingOfType("providers.SessionConfig"),
@@ -142,9 +145,11 @@ func TestWebSocketTranscriptionFlow(t *testing.T) {
 	mockSession.EXPECT().SendAudio(audioData).Return(nil)
 	mockSession.EXPECT().ReceiveTranscription().Return(
 		providers.TranscriptionResult{
-			Text:       expectedTranscription,
-			IsFinal:    true,
-			Confidence: 0.95,
+			Text:         expectedTranscription,
+			IsFinal:      true,
+			Confidence:   0.95,
+			ProviderName: "mock-provider",
+			ReceivedAt:   time.Now(),
 		}, nil).Once()
 	mockSession.EXPECT().ReceiveTranscription().Return(providers.TranscriptionResult{}, io.EOF).Once()
 	mockSession.EXPECT().Close().Return(nil)
@@ -195,6 +200,7 @@ func TestWebSocketMultipleMessages(t *testing.T) {
 	transcription2 := "Second transcription"
 
 	// Setup expectations
+	mockProvider.EXPECT().Name().Return("mock-provider")
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
 		mock.AnythingOfType("providers.SessionConfig"),
@@ -204,13 +210,17 @@ func TestWebSocketMultipleMessages(t *testing.T) {
 	mockSession.EXPECT().SendAudio(audioData2).Return(nil)
 	mockSession.EXPECT().ReceiveTranscription().Return(
 		providers.TranscriptionResult{
-			Text:    transcription1,
-			IsFinal: true,
+			Text:         transcription1,
+			IsFinal:      true,
+			ProviderName: "mock-provider",
+			ReceivedAt:   time.Now(),
 		}, nil).Once()
 	mockSession.EXPECT().ReceiveTranscription().Return(
 		providers.TranscriptionResult{
-			Text:    transcription2,
-			IsFinal: true,
+			Text:         transcription2,
+			IsFinal:      true,
+			ProviderName: "mock-provider",
+			ReceivedAt:   time.Now(),
 		}, nil).Once()
 	mockSession.EXPECT().ReceiveTranscription().Return(providers.TranscriptionResult{}, io.EOF).Once()
 	mockSession.EXPECT().Close().Return(nil)
@@ -264,6 +274,7 @@ func TestWebSocketInvalidJSON(t *testing.T) {
 	mockSession := mocks.NewMockSession(t)
 
 	// Setup expectations
+	mockProvider.EXPECT().Name().Return("mock-provider")
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
 		mock.AnythingOfType("providers.SessionConfig"),
@@ -308,6 +319,7 @@ func TestWebSocketReceiveTranscriptionError(t *testing.T) {
 	audioData := []byte("test audio")
 
 	// Setup expectations
+	mockProvider.EXPECT().Name().Return("mock-provider")
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
 		mock.AnythingOfType("providers.SessionConfig"),
@@ -347,7 +359,7 @@ func TestWebSocketReceiveTranscriptionError(t *testing.T) {
 
 	// Verify error was logged
 	logOutput := logBuffer.String()
-	assert.Contains(t, logOutput, "session.ReceiveTranscription error")
+	assert.Contains(t, logOutput, "Provider mock-provider transcription error")
 }
 
 func TestWebSocketSendAudioError(t *testing.T) {
@@ -359,6 +371,7 @@ func TestWebSocketSendAudioError(t *testing.T) {
 	audioData := []byte("test audio")
 
 	// Setup expectations
+	mockProvider.EXPECT().Name().Return("mock-provider")
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
 		mock.AnythingOfType("providers.SessionConfig"),
@@ -396,7 +409,7 @@ func TestWebSocketSendAudioError(t *testing.T) {
 
 	// Verify error was logged
 	logOutput := logBuffer.String()
-	assert.Contains(t, logOutput, "session.SendAudio error")
+	assert.Contains(t, logOutput, "Provider mock-provider audio send failed")
 }
 
 func TestWebSocketProviderSessionCreationError(t *testing.T) {
@@ -404,6 +417,7 @@ func TestWebSocketProviderSessionCreationError(t *testing.T) {
 	mockProvider := mocks.NewMockProvider(t)
 
 	// Setup expectations - provider fails to create session
+	mockProvider.EXPECT().Name().Return("mock-provider")
 	mockProvider.EXPECT().NewSession(
 		mock.AnythingOfType("*context.cancelCtx"),
 		mock.AnythingOfType("providers.SessionConfig"),
@@ -432,5 +446,5 @@ func TestWebSocketProviderSessionCreationError(t *testing.T) {
 
 	// Verify error was logged
 	logOutput := logBuffer.String()
-	assert.Contains(t, logOutput, "Failed to create transcription session")
+	assert.Contains(t, logOutput, "Failed to create provider selector")
 }

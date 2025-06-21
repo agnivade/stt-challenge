@@ -135,12 +135,10 @@ func (wc *WebConn) writer() {
 			return
 		}
 		if err != nil {
-			// TODO: Handle Audio timeout properly and support resumable streams.
 			wc.log.Printf("session.ReceiveTranscription error: %v\n", err)
 			return
 		}
 
-		// if result.IsFinal {
 		response := WebSocketResponse{
 			Sentence:   result.Text,
 			Confidence: result.Confidence,
@@ -150,6 +148,5 @@ func (wc *WebConn) writer() {
 			wc.log.Printf("WebSocket write error: %v\n", err)
 			return
 		}
-		// }
 	}
 }

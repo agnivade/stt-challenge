@@ -183,6 +183,7 @@ func (ps *ProviderSelector) transcriptionCollector(session providers.Session, pr
 		if err == io.EOF {
 			return
 		}
+		// TODO: Handle Audio timeout properly and support resumable streams.
 		if err != nil {
 			ps.log.Printf("Provider %s transcription error: %v", providerName, err)
 			return
