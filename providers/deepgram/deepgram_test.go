@@ -270,7 +270,7 @@ func TestSession_ReceiveTranscription_ContextCanceled(t *testing.T) {
 func TestSession_ReceiveTranscription_ContextTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
-	
+
 	channelHandler := NewChannelHandler()
 	session := &Session{
 		ctx:            ctx,
@@ -295,7 +295,7 @@ func TestSession_ReceiveTranscription_ConsumeOtherChannels(t *testing.T) {
 		channelHandler.utteranceEndChan <- &api.UtteranceEndResponse{}
 		unhandledData := []byte("test")
 		channelHandler.unhandledChan <- &unhandledData
-		
+
 		// Then send the actual message we want
 		time.Sleep(10 * time.Millisecond)
 		channelHandler.messageChan <- &api.MessageResponse{

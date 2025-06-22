@@ -83,7 +83,6 @@ func main() {
 	}
 }
 
-
 func createGoogleProvider() (providers.Provider, func() error, error) {
 	if os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" {
 		return nil, nil, fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS environment variable is required for Google provider")

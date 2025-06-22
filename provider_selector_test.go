@@ -151,7 +151,7 @@ func TestProviderSelector_updateActiveProvider(t *testing.T) {
 
 func TestProviderSelector_clearOldResults(t *testing.T) {
 	now := time.Now()
-	
+
 	tests := []struct {
 		name            string
 		results         map[string][]ProviderResultWithSeq
@@ -501,7 +501,7 @@ func TestProviderSelector_SendAudio(t *testing.T) {
 	t.Run("returns io.EOF when context is canceled", func(t *testing.T) {
 		// Create a provider selector with a cancelable context and unbuffered channel
 		ctx, cancel := context.WithCancel(context.Background())
-		
+
 		ps := &ProviderSelector{
 			audioInput: make(chan []byte), // Unbuffered channel so write will block
 			ctx:        ctx,
@@ -525,7 +525,7 @@ func TestProviderSelector_SendAudio(t *testing.T) {
 		// Create a provider selector with an active context
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		
+
 		ps := &ProviderSelector{
 			audioInput: make(chan []byte, 1),
 			ctx:        ctx,

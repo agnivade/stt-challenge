@@ -48,7 +48,7 @@ func TestServer_MultipleProviders(t *testing.T) {
 	// Create multiple mock providers
 	mockProvider1 := mocks.NewMockProvider(t)
 	mockProvider1.EXPECT().Name().Return("mock-provider-1").Maybe()
-	
+
 	mockProvider2 := mocks.NewMockProvider(t)
 	mockProvider2.EXPECT().Name().Return("mock-provider-2").Maybe()
 
