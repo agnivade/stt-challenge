@@ -34,7 +34,13 @@ jobs:
       run: go mod download
       
     - name: Run lint
-      run: make lint
+      run: |
+        make lint
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "Code formatting issues found. Please run 'make lint' locally and commit the changes."
+          git status --porcelain
+          exit 1
+        fi
       
     - name: Build binaries
       run: make build
