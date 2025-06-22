@@ -5,8 +5,8 @@
 package google
 
 import (
+	"cloud.google.com/go/speech/apiv1/speechpb"
 	mock "github.com/stretchr/testify/mock"
-	"google.golang.org/genproto/googleapis/cloud/speech/v1"
 )
 
 // newMockstreamingRecognizeClient creates a new instance of mockstreamingRecognizeClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -81,23 +81,23 @@ func (_c *mockstreamingRecognizeClient_CloseSend_Call) RunAndReturn(run func() e
 }
 
 // Recv provides a mock function for the type mockstreamingRecognizeClient
-func (_mock *mockstreamingRecognizeClient) Recv() (*speech.StreamingRecognizeResponse, error) {
+func (_mock *mockstreamingRecognizeClient) Recv() (*speechpb.StreamingRecognizeResponse, error) {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for Recv")
 	}
 
-	var r0 *speech.StreamingRecognizeResponse
+	var r0 *speechpb.StreamingRecognizeResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func() (*speech.StreamingRecognizeResponse, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func() (*speechpb.StreamingRecognizeResponse, error)); ok {
 		return returnFunc()
 	}
-	if returnFunc, ok := ret.Get(0).(func() *speech.StreamingRecognizeResponse); ok {
+	if returnFunc, ok := ret.Get(0).(func() *speechpb.StreamingRecognizeResponse); ok {
 		r0 = returnFunc()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*speech.StreamingRecognizeResponse)
+			r0 = ret.Get(0).(*speechpb.StreamingRecognizeResponse)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func() error); ok {
@@ -125,27 +125,27 @@ func (_c *mockstreamingRecognizeClient_Recv_Call) Run(run func()) *mockstreaming
 	return _c
 }
 
-func (_c *mockstreamingRecognizeClient_Recv_Call) Return(v *speech.StreamingRecognizeResponse, err error) *mockstreamingRecognizeClient_Recv_Call {
-	_c.Call.Return(v, err)
+func (_c *mockstreamingRecognizeClient_Recv_Call) Return(streamingRecognizeResponse *speechpb.StreamingRecognizeResponse, err error) *mockstreamingRecognizeClient_Recv_Call {
+	_c.Call.Return(streamingRecognizeResponse, err)
 	return _c
 }
 
-func (_c *mockstreamingRecognizeClient_Recv_Call) RunAndReturn(run func() (*speech.StreamingRecognizeResponse, error)) *mockstreamingRecognizeClient_Recv_Call {
+func (_c *mockstreamingRecognizeClient_Recv_Call) RunAndReturn(run func() (*speechpb.StreamingRecognizeResponse, error)) *mockstreamingRecognizeClient_Recv_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Send provides a mock function for the type mockstreamingRecognizeClient
-func (_mock *mockstreamingRecognizeClient) Send(v *speech.StreamingRecognizeRequest) error {
-	ret := _mock.Called(v)
+func (_mock *mockstreamingRecognizeClient) Send(streamingRecognizeRequest *speechpb.StreamingRecognizeRequest) error {
+	ret := _mock.Called(streamingRecognizeRequest)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Send")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(*speech.StreamingRecognizeRequest) error); ok {
-		r0 = returnFunc(v)
+	if returnFunc, ok := ret.Get(0).(func(*speechpb.StreamingRecognizeRequest) error); ok {
+		r0 = returnFunc(streamingRecognizeRequest)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -158,16 +158,16 @@ type mockstreamingRecognizeClient_Send_Call struct {
 }
 
 // Send is a helper method to define mock.On call
-//   - v *speech.StreamingRecognizeRequest
-func (_e *mockstreamingRecognizeClient_Expecter) Send(v interface{}) *mockstreamingRecognizeClient_Send_Call {
-	return &mockstreamingRecognizeClient_Send_Call{Call: _e.mock.On("Send", v)}
+//   - streamingRecognizeRequest *speechpb.StreamingRecognizeRequest
+func (_e *mockstreamingRecognizeClient_Expecter) Send(streamingRecognizeRequest interface{}) *mockstreamingRecognizeClient_Send_Call {
+	return &mockstreamingRecognizeClient_Send_Call{Call: _e.mock.On("Send", streamingRecognizeRequest)}
 }
 
-func (_c *mockstreamingRecognizeClient_Send_Call) Run(run func(v *speech.StreamingRecognizeRequest)) *mockstreamingRecognizeClient_Send_Call {
+func (_c *mockstreamingRecognizeClient_Send_Call) Run(run func(streamingRecognizeRequest *speechpb.StreamingRecognizeRequest)) *mockstreamingRecognizeClient_Send_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *speech.StreamingRecognizeRequest
+		var arg0 *speechpb.StreamingRecognizeRequest
 		if args[0] != nil {
-			arg0 = args[0].(*speech.StreamingRecognizeRequest)
+			arg0 = args[0].(*speechpb.StreamingRecognizeRequest)
 		}
 		run(
 			arg0,
@@ -181,7 +181,7 @@ func (_c *mockstreamingRecognizeClient_Send_Call) Return(err error) *mockstreami
 	return _c
 }
 
-func (_c *mockstreamingRecognizeClient_Send_Call) RunAndReturn(run func(v *speech.StreamingRecognizeRequest) error) *mockstreamingRecognizeClient_Send_Call {
+func (_c *mockstreamingRecognizeClient_Send_Call) RunAndReturn(run func(streamingRecognizeRequest *speechpb.StreamingRecognizeRequest) error) *mockstreamingRecognizeClient_Send_Call {
 	_c.Call.Return(run)
 	return _c
 }
