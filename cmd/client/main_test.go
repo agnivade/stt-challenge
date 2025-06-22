@@ -17,10 +17,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const (
-	testFramesPerBuffer = 1024
-)
-
 // mockWebSocketServer creates a test WebSocket server that can send and receive messages
 func mockWebSocketServer(t *testing.T, handler func(*websocket.Conn)) *httptest.Server {
 	upgrader := websocket.Upgrader{
