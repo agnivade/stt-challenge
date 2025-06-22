@@ -34,7 +34,7 @@ type Client struct {
 func main() {
 	var serverURL = flag.String("url", "ws://localhost:8081/ws", "WebSocket server URL")
 	var outputPath = flag.String("output", "", "Output file path for transcriptions (optional)")
-	var inputFile = flag.String("input", "", "Input audio file path (if not set, uses microphone)")
+	var inputFile = flag.String("input", "", "Input audio file path (useful for testing)")
 	flag.Parse()
 
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
@@ -115,9 +115,7 @@ func (c *Client) reader() {
 
 		_, r, err := c.conn.NextReader()
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				c.log.Printf("WebSocket read error: %v\n", err)
-			}
+			c.log.Printf("WebSocket read error: %v\n", err)
 			return
 		}
 

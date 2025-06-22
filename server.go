@@ -16,6 +16,10 @@ type Server struct {
 	srv       *http.Server
 	log       *log.Logger
 	providers []providers.Provider
+
+	// Connection tracking
+	mu    sync.Mutex
+	conns map[*WebConn]struct{}
 }
 
 func New(providers ...providers.Provider) *Server {
@@ -32,6 +36,7 @@ func New(providers ...providers.Provider) *Server {
 		},
 		log:       logger,
 		providers: providers,
+		conns:     make(map[*WebConn]struct{}),
 	}
 
 	mux.HandleFunc("/ws", server.handleWebSocket)
@@ -60,8 +65,36 @@ func (s *Server) Start() error {
 	return nil
 }
 
+// addConn registers a WebSocket connection for tracking
+func (s *Server) addConn(wc *WebConn) {
+	s.mu.Lock()
+	s.conns[wc] = struct{}{}
+	s.mu.Unlock()
+}
+
+// removeConn unregisters a WebSocket connection
+func (s *Server) removeConn(wc *WebConn) {
+	s.mu.Lock()
+	delete(s.conns, wc)
+	s.mu.Unlock()
+}
+
+// stopAllConns gracefully stops all active WebSocket connections
+func (s *Server) stopAllConns() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// TODO: optimize to stop each connection in parallel
+	for wc := range s.conns {
+		wc.Stop()
+	}
+}
+
 func (s *Server) Stop() error {
 	s.log.Println("Shutting down server...")
+
+	// First, stop accepting new connections and close existing ones
+	s.stopAllConns()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

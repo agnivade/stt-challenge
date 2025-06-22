@@ -126,14 +126,17 @@ func (ps *ProviderSelector) Close() error {
 	// of writing to ps.audioInput again.
 	close(ps.audioInput)
 
-	// Close all sessions
+	// Wait for all goroutines to finish before closing sessions
+	// This ensures audioDistributor goroutines complete before we close sessions
+	ps.wg.Wait()
+
+	// Close all sessions after all audio sending is complete
 	for _, session := range ps.sessions {
 		if err := session.Close(); err != nil {
 			ps.log.Printf("Error closing session: %v", err)
 		}
 	}
 
-	ps.wg.Wait()
 	close(ps.transcriptionOutput)
 	close(ps.transcriptionBuffer)
 

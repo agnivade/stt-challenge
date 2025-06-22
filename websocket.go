@@ -71,7 +71,9 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		session: selector,
 	}
 
-	// TODO: keep track of webconns and close them properly on server shutdown.
+	// Register connection for tracking
+	s.addConn(webConn)
+	defer s.removeConn(webConn)
 	webConn.Start()
 }
 
@@ -87,8 +89,17 @@ func (wc *WebConn) Start() {
 	wc.reader()
 	wc.log.Println("Closing transcription session...")
 	// Close session, which will cancel context and allow writer to exit
-	// Important to call this after wc.reader() exits.
+	// Important to call this _after_ wc.reader() exits.
 	wc.session.Close()
+	wc.wg.Wait()
+}
+
+// Stop gracefully closes the WebSocket connection and waits for all
+// goroutines to finish. This method is safe to call multiple times.
+func (wc *WebConn) Stop() {
+	// Close the connection, which will cause reader() to exit
+	wc.conn.Close()
+	// Wait for all goroutines to finish
 	wc.wg.Wait()
 }
 
