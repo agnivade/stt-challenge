@@ -177,6 +177,10 @@ make mocks
 go run -modfile=go.tools.mod github.com/vektra/mockery/v2
 ```
 
+## Architecture
+
+For a detailed explanation of the system architecture and data flow, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Contributing
 
 1. Run tests before submitting: `make test`
