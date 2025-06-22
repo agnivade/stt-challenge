@@ -125,7 +125,7 @@ go run ./cmd/client -url="ws://localhost:8081/ws"
 go run ./cmd/client -output="transcript.txt"
 
 # Use audio file as input (for testing)
-go run ./cmd/client -input="audio.wav"
+go run ./cmd/client -input="audio.raw"
 ```
 
 #### Client Flags
