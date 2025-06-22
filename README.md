@@ -166,21 +166,13 @@ go run ./cmd/client -input="audio.raw"
 ### Running Tests
 
 ```bash
-# Run all tests with race detection
 make test
-
-# Or manually
-go test -v -race ./...
 ```
 
 ### Generating Mocks
 
 ```bash
-# Generate mocks for testing
 make mocks
-
-# Or manually
-go run -modfile=go.tools.mod github.com/vektra/mockery/v2
 ```
 
 ## Architecture
