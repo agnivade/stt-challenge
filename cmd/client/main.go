@@ -92,6 +92,9 @@ func main() {
 	client.Start()
 
 	// Wait for interrupt signal
+	// This means that closing the connection from server, doesn't quit
+	// the client. We could pass the signal chan to the client
+	// if we want that behavior.
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
