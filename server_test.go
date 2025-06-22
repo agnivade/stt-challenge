@@ -21,7 +21,7 @@ func TestServer_StartAndStop(t *testing.T) {
 	mockProvider.EXPECT().Name().Return("mock-provider").Maybe()
 
 	// Create server with mock provider and silent logger
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Channel to capture any errors from Start()
@@ -57,7 +57,7 @@ func TestServer_MultipleProviders(t *testing.T) {
 	mockProvider2.EXPECT().Name().Return("mock-provider-2").Maybe()
 
 	// Create server with multiple providers
-	server := New(mockProvider1, mockProvider2)
+	server := New("8081", mockProvider1, mockProvider2)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Verify server was created with both providers
@@ -90,7 +90,7 @@ func TestServer_MultipleProviders(t *testing.T) {
 func TestServer_AddConn(t *testing.T) {
 	// Create server
 	mockProvider := mocks.NewMockProvider(t)
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Create mock WebConn objects
@@ -115,7 +115,7 @@ func TestServer_AddConn(t *testing.T) {
 func TestServer_RemoveConn(t *testing.T) {
 	// Create server
 	mockProvider := mocks.NewMockProvider(t)
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Create mock WebConn objects
@@ -148,7 +148,7 @@ func TestServer_RemoveConn(t *testing.T) {
 func TestServer_StopAllConns_EmptyConnections(t *testing.T) {
 	// Create server with no connections
 	mockProvider := mocks.NewMockProvider(t)
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	assert.Len(t, server.conns, 0)
@@ -188,7 +188,7 @@ func createMockWebSocketConnection(t *testing.T) *websocket.Conn {
 func TestServer_StopAllConns_WithRealConnections(t *testing.T) {
 	// Create server
 	mockProvider := mocks.NewMockProvider(t)
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Create WebConns with real WebSocket connections
@@ -219,7 +219,7 @@ func TestServer_StopAllConns_WithRealConnections(t *testing.T) {
 func TestServer_StopWithConnections_FullLifecycle(t *testing.T) {
 	// Create server
 	mockProvider := mocks.NewMockProvider(t)
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Start server in goroutine

@@ -55,7 +55,7 @@ func TestWebSocketHandleConnection(t *testing.T) {
 	mockSession.EXPECT().Close().Return(nil)
 
 	// Create server with mock provider
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Create test HTTP server
@@ -99,7 +99,7 @@ func TestWebSocketAudioFlow(t *testing.T) {
 	mockSession.EXPECT().Close().Return(nil)
 
 	// Create server with mock provider
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Create test HTTP server
@@ -155,7 +155,7 @@ func TestWebSocketTranscriptionFlow(t *testing.T) {
 	mockSession.EXPECT().Close().Return(nil)
 
 	// Create server with mock provider
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Create test HTTP server
@@ -226,7 +226,7 @@ func TestWebSocketMultipleMessages(t *testing.T) {
 	mockSession.EXPECT().Close().Return(nil)
 
 	// Create server with mock provider
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Create test HTTP server
@@ -284,7 +284,7 @@ func TestWebSocketInvalidJSON(t *testing.T) {
 	mockSession.EXPECT().Close().Return(nil)
 
 	// Create server with mock provider
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(io.Discard, "", 0)
 
 	// Create test HTTP server
@@ -333,7 +333,7 @@ func TestWebSocketReceiveTranscriptionError(t *testing.T) {
 
 	// Create server with mock provider and thread-safe log buffer
 	logBuffer := &ThreadSafeBuffer{}
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(logBuffer, "", 0)
 
 	// Create test HTTP server
@@ -383,7 +383,7 @@ func TestWebSocketSendAudioError(t *testing.T) {
 
 	// Create server with mock provider and thread-safe log buffer
 	logBuffer := &ThreadSafeBuffer{}
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(logBuffer, "", 0)
 
 	// Create test HTTP server
@@ -425,7 +425,7 @@ func TestWebSocketProviderSessionCreationError(t *testing.T) {
 
 	// Create server with mock provider and thread-safe log buffer
 	logBuffer := &ThreadSafeBuffer{}
-	server := New(mockProvider)
+	server := New("8081", mockProvider)
 	server.log = log.New(logBuffer, "", 0)
 
 	// Create test HTTP server

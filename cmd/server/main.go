@@ -20,6 +20,7 @@ func main() {
 	// Parse command line flags
 	enableGoogle := flag.Bool("google", true, "Enable Google Speech provider")
 	enableDeepgram := flag.Bool("deepgram", true, "Enable Deepgram provider")
+	port := flag.String("port", "8081", "Server port")
 	flag.Parse()
 
 	// Create providers based on flags
@@ -66,7 +67,7 @@ func main() {
 	log.Printf("Starting server with %d provider(s)", len(providerList))
 
 	// Create server with all providers
-	s := stt.New(providerList...)
+	s := stt.New(*port, providerList...)
 
 	go func() {
 		if err := s.Start(); err != nil {

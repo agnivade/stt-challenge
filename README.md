@@ -94,6 +94,9 @@ go run ./cmd/server -deepgram=false
 
 # Run with only Deepgram provider
 go run ./cmd/server -google=false
+
+# Run on custom port
+go run ./cmd/server -port=8080
 ```
 
 #### Server Flags
@@ -102,6 +105,7 @@ go run ./cmd/server -google=false
 |------|------|---------|-------------|
 | `-google` | bool | `true` | Enable Google Speech-to-Text provider |
 | `-deepgram` | bool | `true` | Enable Deepgram provider |
+| `-port` | string | `"8081"` | Server port |
 
 #### Environment Variables
 
