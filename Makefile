@@ -1,4 +1,4 @@
-.PHONY: help run-client run-server test coverage mocks clean
+.PHONY: help run-client run-server test coverage lint mocks clean
 
 # Default target
 help:
@@ -7,6 +7,7 @@ help:
 	@echo "  run-server    - Run the server application"
 	@echo "  test          - Run all tests with race detection"
 	@echo "  coverage      - Generate and view test coverage report"
+	@echo "  lint          - Run golangci-lint"
 	@echo "  mocks         - Generate mock files using mockery"
 	@echo "  clean         - Clean build artifacts"
 
@@ -27,9 +28,13 @@ coverage:
 	go test -cover -covermode=count -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
 
+# Run golangci-lint
+lint:
+	gofmt -l -s -w . && go vet -all ./...
+
 # Generate mocks using mockery
 mocks:
-	go run -modfile=go.tools.mod mockery
+	go tool -modfile=go.tools.mod mockery
 
 # Clean build artifacts
 clean:
