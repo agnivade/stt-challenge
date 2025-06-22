@@ -11,7 +11,8 @@ import (
 	"github.com/agnivade/stt_challenge/providers"
 )
 
-// ProviderResultWithSeq wraps transcription result with sequence number
+// ProviderResultWithSeq wraps transcription result with sequence number.
+// See sendMissedMessages for more context.
 type ProviderResultWithSeq struct {
 	Result providers.TranscriptionResult
 	// Caveat: this WILL wrap around after 1<<64 - 1 times
@@ -299,7 +300,9 @@ func (ps *ProviderSelector) updateActiveProvider() {
 
 // sendMissedMessages sends any messages from the new active provider that have
 // higher sequence numbers than the old provider, assuming they represent missed transcriptions.
-// This does assume that the Utterance gap of each provider would be the same, which may not be the case, but it's good enough for now.
+// This is not perfect, and assumes that the Utterance gap of each provider
+// would be the same, which may not be the case. Even if it's the same,
+// the detection logic might differ. But we keep it simple for now.
 // A side issue is that it does not play well with replayed audio since
 // the samples get sent too quickly.
 func (ps *ProviderSelector) sendMissedMessages(oldProvider, newProvider string) {

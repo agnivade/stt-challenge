@@ -49,6 +49,8 @@ func createTestClient(t *testing.T, conn *websocket.Conn, audioReader io.Reader,
 		conn:        conn,
 		audioReader: audioReader,
 		log:         logger,
+		msgBuffer:   NewMessageBuffer(10),
+		similarityThreshold: 0.8,
 	}
 
 	if outputFile != nil {

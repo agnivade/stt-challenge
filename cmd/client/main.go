@@ -24,17 +24,21 @@ import (
 // and receives transcription results. It manages the WebSocket connection, audio input,
 // and optional output file writing.
 type Client struct {
-	conn        *websocket.Conn
-	audioReader io.Reader
-	wg          sync.WaitGroup
-	log         *log.Logger
-	bufWriter   *bufio.Writer
+	conn                *websocket.Conn
+	audioReader         io.Reader
+	wg                  sync.WaitGroup
+	log                 *log.Logger
+	bufWriter           *bufio.Writer
+	msgBuffer           *MessageBuffer
+	similarityThreshold float64
 }
 
 func main() {
 	var serverURL = flag.String("url", "ws://localhost:8081/ws", "WebSocket server URL")
 	var outputPath = flag.String("output", "", "Output file path for transcriptions (optional)")
 	var inputFile = flag.String("input", "", "Input audio file path (useful for testing)")
+	var bufferSize = flag.Int("buffer-size", 10, "Number of recent messages to keep for deduplication")
+	var similarityThreshold = flag.Float64("similarity-threshold", 0.8, "Similarity threshold for deduplication (0.0-1.0)")
 	flag.Parse()
 
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
@@ -69,9 +73,11 @@ func main() {
 	defer conn.Close()
 
 	client := &Client{
-		conn:        conn,
-		audioReader: audioReader,
-		log:         logger,
+		conn:                conn,
+		audioReader:         audioReader,
+		log:                 logger,
+		msgBuffer:           NewMessageBuffer(*bufferSize),
+		similarityThreshold: *similarityThreshold,
 	}
 
 	// Setup output file if specified
@@ -132,6 +138,15 @@ func (c *Client) reader() {
 			c.log.Printf("Failed to unmarshal response: %v\n", err)
 			continue
 		}
+
+		// Check for duplicate messages using the buffer
+		if c.msgBuffer.IsSimilar(response.Sentence, c.similarityThreshold) {
+			c.log.Printf("Skipping duplicate message: %s\n", response.Sentence)
+			continue
+		}
+
+		// Add message to buffer for future deduplication
+		c.msgBuffer.Add(response.Sentence)
 
 		timestamp := time.Now().Format("15:04:05")
 		line := fmt.Sprintf("[%s] %s (confidence: %.2f)\n", timestamp, response.Sentence, response.Confidence)

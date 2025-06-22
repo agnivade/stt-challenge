@@ -4,7 +4,7 @@
 
 The system follows a client-server architecture with multi-provider support for speech-to-text transcription. The main components are:
 
-1. **Client** - Captures audio and displays transcriptions
+1. **Client** - Captures audio, handles deduplication, and displays transcriptions
 2. **WebSocket Server** - Manages connections and coordinates providers
 3. **Provider Selector** - Distributes audio and selects best transcription
 4. **STT Providers** - Interface with external speech services (Google, Deepgram)
@@ -16,7 +16,8 @@ The system follows a client-server architecture with multi-provider support for 
 │     Client      │◄────────────────►│         Server                  │
 │                 │     JSON         │                                 │
 │ - Audio Capture │     Messages     │ ┌─────────────────────────────┐ │
-│ - Display Text  │                  │ │        WebConn              │ │
+│ - Deduplication │                  │ │        WebConn              │ │
+│ - Display Text  │                  │ │                             │ │
 └─────────────────┘                  │ │                             │ │
                                      │ └─────────────┬───────────────┘ │
                                      └───────────────┼─────────────────┘
@@ -54,9 +55,10 @@ The system follows a client-server architecture with multi-provider support for 
 - Providers send transcription results back to ProviderSelector
 - TranscriptionCollector implements selection logic to choose best result
 
-### 3. Response Delivery
+### 3. Response Delivery → Client-Side Deduplication
 - Selected transcription is sent back through WebConn to Client
-- Client displays the transcription result
+- Client performs similarity-based deduplication using circular buffer
+- Unique transcriptions are displayed to user
 
 ## Provider Selector Logic
 
@@ -68,3 +70,16 @@ The ProviderSelector implements a **heuristic-based selection** strategy:
 - **Missed Message Recovery**: When switching providers, sends any missed transcriptions from the new active provider
 
 This approach optimizes for low latency while maintaining reliability through provider redundancy.
+
+## Client-Side Deduplication
+
+When providers switch, duplicate transcriptions may be sent to the client because the new provider might be yet to receive messages which have been already sent by the old provider. To address this, the client implements similarity-based deduplication:
+
+- **Circular Buffer**: Stores recent transcriptions (configurable size, default 10)
+- **Levenshtein Distance**: Calculates similarity between new and buffered messages
+- **Threshold-Based Filtering**: Messages with a configurable threshold are considered duplicates and skipped
+- **Message Normalization**: Case-insensitive comparison with whitespace trimming
+
+**Configuration**: Use `--buffer-size` and `--similarity-threshold` flags to tune behavior.
+
+This ensures users receive clean, non-repetitive transcription output during provider transitions.

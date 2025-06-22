@@ -139,6 +139,8 @@ go run ./cmd/client -input="audio.raw"
 | `-url` | string | `ws://localhost:8081/ws` | WebSocket server URL |
 | `-output` | string | `""` | Output file path for transcriptions (optional) |
 | `-input` | string | `""` | Input audio file path (useful for testing) |
+| `-buffer-size` | int | `10` | Number of recent messages to keep for deduplication |
+| `-similarity-threshold` | float64 | `0.8` | Similarity threshold for deduplication (0.0-1.0) |
 
 ## API Reference
 
