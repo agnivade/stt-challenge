@@ -129,7 +129,7 @@ func TestClient(t *testing.T) {
 		defer conn.Close()
 
 		// Open test.raw file
-		testFile, err := os.Open("../../test.raw")
+		testFile, err := os.Open("../../testdata/test.raw")
 		if err != nil {
 			t.Fatalf("Failed to open test.raw: %v", err)
 		}
@@ -356,7 +356,7 @@ func TestClient(t *testing.T) {
 		defer conn.Close()
 
 		// Open test.raw file
-		testFile, err := os.Open("../../test.raw")
+		testFile, err := os.Open("../../testdata/test.raw")
 		if err != nil {
 			t.Fatalf("Failed to open test.raw: %v", err)
 		}
