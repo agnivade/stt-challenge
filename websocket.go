@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/agnivade/stt_challenge/providers"
 	"github.com/gorilla/websocket"
+
+	"github.com/agnivade/stt_challenge/providers"
 )
 
 // WebSocketRequest represents an audio data message sent from the client to the server.

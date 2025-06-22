@@ -10,6 +10,8 @@ cloud.google.com/go/longrunning v0.6.7 h1:IGtfDWHhQCgCjwQjV9iiLnUta9LBCo8R9QmAFs
 cloud.google.com/go/longrunning v0.6.7/go.mod h1:EAFV3IZAKmM56TyiE6VAP3VoTzhZzySwI/YI1s/nRsY=
 cloud.google.com/go/speech v1.28.0 h1:9AuiAxDTmh/aeREtw+/0e7aI27T5QN4fK5lhssc9MxA=
 cloud.google.com/go/speech v1.28.0/go.mod h1:hJf6oa+1rzCW/CeDE/qCXedV20B2TXEUje5iaGwW+JI=
+github.com/agnivade/levenshtein v1.2.1 h1:EHBY3UOn1gwdy/VbFwgo4cxecRznFk7fKWN1KOX7eoM=
+github.com/agnivade/levenshtein v1.2.1/go.mod h1:QVVI16kDrtSuwcpd0p1+xMC6Z/VfhtCyDIjcwga4/DU=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/deepgram/deepgram-go-sdk/v3 v3.1.1 h1:izDMKPh22C8w1unIPnlY1eZjGwIedeligNL5YeKRd/Q=
