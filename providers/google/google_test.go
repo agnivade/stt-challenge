@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/speech/apiv1/speechpb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/genproto/googleapis/cloud/speech/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -81,11 +81,11 @@ func TestSession_ReceiveTranscription(t *testing.T) {
 		{
 			name: "successful transcription with final result",
 			setupMock: func(m *mockstreamingRecognizeClient) {
-				response := &speech.StreamingRecognizeResponse{
-					Results: []*speech.StreamingRecognitionResult{
+				response := &speechpb.StreamingRecognizeResponse{
+					Results: []*speechpb.StreamingRecognitionResult{
 						{
 							IsFinal: true,
-							Alternatives: []*speech.SpeechRecognitionAlternative{
+							Alternatives: []*speechpb.SpeechRecognitionAlternative{
 								{
 									Transcript: "hello world",
 									Confidence: 0.95,
@@ -108,11 +108,11 @@ func TestSession_ReceiveTranscription(t *testing.T) {
 			name: "non-final result followed by final result",
 			setupMock: func(m *mockstreamingRecognizeClient) {
 				// First call returns non-final result
-				nonFinalResponse := &speech.StreamingRecognizeResponse{
-					Results: []*speech.StreamingRecognitionResult{
+				nonFinalResponse := &speechpb.StreamingRecognizeResponse{
+					Results: []*speechpb.StreamingRecognitionResult{
 						{
 							IsFinal: false,
-							Alternatives: []*speech.SpeechRecognitionAlternative{
+							Alternatives: []*speechpb.SpeechRecognitionAlternative{
 								{
 									Transcript: "hello",
 									Confidence: 0.8,
@@ -122,11 +122,11 @@ func TestSession_ReceiveTranscription(t *testing.T) {
 					},
 				}
 				// Second call returns final result
-				finalResponse := &speech.StreamingRecognizeResponse{
-					Results: []*speech.StreamingRecognitionResult{
+				finalResponse := &speechpb.StreamingRecognizeResponse{
+					Results: []*speechpb.StreamingRecognitionResult{
 						{
 							IsFinal: true,
-							Alternatives: []*speech.SpeechRecognitionAlternative{
+							Alternatives: []*speechpb.SpeechRecognitionAlternative{
 								{
 									Transcript: "hello world",
 									Confidence: 0.95,
@@ -150,20 +150,20 @@ func TestSession_ReceiveTranscription(t *testing.T) {
 			name: "empty alternatives",
 			setupMock: func(m *mockstreamingRecognizeClient) {
 				// First response with empty alternatives
-				emptyResponse := &speech.StreamingRecognizeResponse{
-					Results: []*speech.StreamingRecognitionResult{
+				emptyResponse := &speechpb.StreamingRecognizeResponse{
+					Results: []*speechpb.StreamingRecognitionResult{
 						{
 							IsFinal:      true,
-							Alternatives: []*speech.SpeechRecognitionAlternative{},
+							Alternatives: []*speechpb.SpeechRecognitionAlternative{},
 						},
 					},
 				}
 				// Second response with valid alternatives
-				validResponse := &speech.StreamingRecognizeResponse{
-					Results: []*speech.StreamingRecognitionResult{
+				validResponse := &speechpb.StreamingRecognizeResponse{
+					Results: []*speechpb.StreamingRecognitionResult{
 						{
 							IsFinal: true,
-							Alternatives: []*speech.SpeechRecognitionAlternative{
+							Alternatives: []*speechpb.SpeechRecognitionAlternative{
 								{
 									Transcript: "test",
 									Confidence: 0.9,
