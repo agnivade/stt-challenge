@@ -22,13 +22,13 @@ type Server struct {
 	conns map[*WebConn]struct{}
 }
 
-func New(providers ...providers.Provider) *Server {
+func New(port string, providers ...providers.Provider) *Server {
 	logger := log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)
 	mux := http.NewServeMux()
 
 	server := &Server{
 		srv: &http.Server{
-			Addr:         ":8081",
+			Addr:         ":" + port,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  60 * time.Second,
