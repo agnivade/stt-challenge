@@ -46,10 +46,10 @@ func createTestClient(t *testing.T, conn *websocket.Conn, audioReader io.Reader,
 	logger := log.New(io.Discard, "", 0) // Suppress test output
 
 	client := &Client{
-		conn:        conn,
-		audioReader: audioReader,
-		log:         logger,
-		msgBuffer:   NewMessageBuffer(10),
+		conn:                conn,
+		audioReader:         audioReader,
+		log:                 logger,
+		msgBuffer:           NewMessageBuffer(10),
 		similarityThreshold: 0.8,
 	}
 

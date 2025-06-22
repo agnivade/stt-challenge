@@ -22,7 +22,7 @@ func NewMessageBuffer(capacity int) *MessageBuffer {
 	if capacity <= 0 {
 		capacity = 1 // Default to minimum useful capacity
 	}
-	
+
 	return &MessageBuffer{
 		messages: make([]string, capacity),
 		capacity: capacity,
@@ -33,7 +33,7 @@ func NewMessageBuffer(capacity int) *MessageBuffer {
 func (mb *MessageBuffer) Add(message string) {
 	mb.mu.Lock()
 	defer mb.mu.Unlock()
-	
+
 	mb.messages[mb.head] = message
 	mb.head = (mb.head + 1) % mb.capacity
 	if mb.size < mb.capacity {
@@ -45,9 +45,9 @@ func (mb *MessageBuffer) Add(message string) {
 func (mb *MessageBuffer) IsSimilar(message string, threshold float64) bool {
 	mb.mu.RLock()
 	defer mb.mu.RUnlock()
-	
+
 	normalizedMsg := normalizeMessage(message)
-	
+
 	for i := 0; i < mb.size; i++ {
 		bufferMsg := normalizeMessage(mb.messages[i])
 		if isSimilarMessage(normalizedMsg, bufferMsg, threshold) {
@@ -67,17 +67,17 @@ func isSimilarMessage(msg1, msg2 string, threshold float64) bool {
 	if msg1 == msg2 {
 		return true
 	}
-	
+
 	if msg1 == "" || msg2 == "" {
 		return false
 	}
-	
+
 	distance := levenshtein.ComputeDistance(msg1, msg2)
 	maxLen := len(msg1)
 	if len(msg2) > maxLen {
 		maxLen = len(msg2)
 	}
-	
+
 	similarity := 1.0 - (float64(distance) / float64(maxLen))
 	return similarity >= threshold
 }
