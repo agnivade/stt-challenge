@@ -1,10 +1,11 @@
-.PHONY: help run-client run-server test coverage lint mocks clean
+.PHONY: help run-client run-server build test coverage lint mocks clean
 
 # Default target
 help:
 	@echo "Available targets:"
 	@echo "  run-client    - Run the client application"
 	@echo "  run-server    - Run the server application"
+	@echo "  build         - Build client and server binaries"
 	@echo "  test          - Run all tests with race detection"
 	@echo "  coverage      - Generate and view test coverage report"
 	@echo "  lint          - Run golangci-lint"
@@ -18,6 +19,11 @@ run-client:
 # Run the server
 run-server:
 	go run ./cmd/server
+
+# Build client and server binaries
+build:
+	go build -o bin/client ./cmd/client
+	go build -o bin/server ./cmd/server
 
 # Run tests with verbose output and race detection
 test:
@@ -41,3 +47,4 @@ clean:
 	go clean -testcache ./...
 	rm -f coverage.out
 	rm -f transcript.txt
+	rm -rf bin/
